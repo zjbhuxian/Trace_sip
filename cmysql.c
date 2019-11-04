@@ -391,13 +391,50 @@ int db_get_trace_info(MYSQL* mysql, pquery_trace_info query_info)
 }
 
 /* add table interfaces */
-int db_add_trace_info(ptrace_info traceinfo)
+int db_add_trace_info(MYSQL *mysql, ptrace_info traceinfo)
 {
-  return 0;
+	char* prepStmt = "insert into %s values('%s','%s');";
+	char*	queryStmt = (char*)malloc(2048);
+	int		ret = 0;
+
+	if(!mysql || !traceinfo || !prepStmt){
+		if(queryStmt){
+			free(queryStmt);
+		}
+		return -1;
+	}
+
+	sprintf(queryStmt, prepStmt, "trace_info", traceinfo->incallid, traceinfo->outcallid);
+	ret = db_do_query_2(mysql, queryStmt, NULL, NULL);
+
+	if(queryStmt){
+		free(queryStmt);
+		queryStmt = NULL;
+	}
+
+	if(ret > 0){
+		return 0;
+	}
+
+  return -1;
 }
 
 /* delete table interfaces */
-int db_delete_trace_info(ptrace_info traceinfo)
+int db_delete_trace_info(MYSQL* mysql, ptrace_info traceinfo)
 {
-  return 0;
+	if(!mysql || !traceinfo){
+		return -1;
+	}
+
+	char*	prepStmt = "delete from %s where incallid = '%s' or outcallid = '%s';";
+	char	queryStmt[2048] = {0};
+	int		ret = 0;
+
+	sprintf(queryStmt, prepStmt, "trace_info", traceinfo->incallid, traceinfo->outcallid);
+	ret = db_do_query_2(mysql, queryStmt, NULL, NULL);
+
+	if(ret > 0){
+		return 0;
+	}
+  return -1;
 }

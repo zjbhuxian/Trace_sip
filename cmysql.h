@@ -87,10 +87,10 @@ int db_get_business_info(MYSQL* mysql, pquery_business_info query_info);
 int db_get_trace_info(MYSQL* mysql, pquery_trace_info query_info);
 
 /* add table interfaces */
-int db_add_trace_info(ptrace_info traceinfo);
+int db_add_trace_info(MYSQL* mysql, ptrace_info traceinfo);
 
 /* delete table interfaces */
-int db_delete_trace_info(ptrace_info traceinfo);
+int db_delete_trace_info(MYSQL* mysql, ptrace_info traceinfo);
 
 /* update table interfaces */
 //int db_update_trace_info(ptrace_info traceinfo);
