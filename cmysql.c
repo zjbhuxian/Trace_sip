@@ -16,6 +16,14 @@ int get_db_tm_from_format_time(char* format_time, struct tm* timeinfo)
   return 0;
 }
 
+int init_business_info(pbusiness_info pbi)
+{
+	if(!pbi){
+		return -1;
+	}
+	return 0;
+}
+
 int init_query_business_info(pquery_business_info pqbi)
 {
 	if(!pqbi){
@@ -35,6 +43,24 @@ int init_query_trace_info(pquery_trace_info pqti)
 	}
 
 	pqti->ptraceInfo = NULL;
+	return 0;
+}
+
+int init_trace_info(ptrace_info pti)
+{
+	if(!pti){
+		return -1;
+	}
+
+	if(pti->sign_no){
+		memset(pti->sign_no, 0x00, sizeof(pti->sign_no));
+	}
+	if(pti->incallid){
+		memset(pti->incallid, 0x00, sizeof(pti->incallid));
+	}
+	if(pti->outcallid){
+		memset(pti->outcallid, 0x00, sizeof(pti->outcallid));
+	}
 	return 0;
 }
 
@@ -110,7 +136,8 @@ int db_do_query_2(MYSQL* mysql, const char* query, callback cb, void* result)
     if(cb){
       cb(result, res, num_fields, num_rows);
     }
-    mysql_free_result(res);
+		if(res != NULL)
+			mysql_free_result(res);
 
     return num_rows;
   }else{
@@ -326,14 +353,20 @@ int callback_get_trace_info(void* arg, MYSQL_RES* resultSet, int num_fields, int
   if(result->ptraceInfo != NULL && result->cur_row < result->num_rows){
     while((row = mysql_fetch_row(resultSet)) != NULL){
       printf("%d\n", result->cur_row);
-      if(row[0]){
-        strcpy(result->ptraceInfo[result->cur_row].incallid, row[0]);
+			if(row[0]){
+				strcpy(result->ptraceInfo[result->cur_row].sign_no, row[0]);
+			}else{
+				strcpy(result->ptraceInfo[result->cur_row].sign_no, "");
+			}
+
+      if(row[1]){
+        strcpy(result->ptraceInfo[result->cur_row].incallid, row[1]);
       }else{
         strcpy(result->ptraceInfo[result->cur_row].incallid, "");
       }
 
-      if(row[1]){
-        strcpy(result->ptraceInfo[result->cur_row].outcallid, row[1]);
+      if(row[2]){
+        strcpy(result->ptraceInfo[result->cur_row].outcallid, row[2]);
       }else{
         strcpy(result->ptraceInfo[result->cur_row].outcallid, "");
       }
@@ -358,6 +391,30 @@ int db_get_business_info(MYSQL* mysql, pquery_business_info query_info)
   int ret = 0;
 
   sprintf(queryStmt, prepStmt, "business_msg");
+	printf("sql: [%s]\n", queryStmt);
+
+  ret = db_do_query_2(mysql, queryStmt, callback_get_business_info, query_info);
+
+  if(ret > 0){
+    return 0;
+  }
+
+  return -1;
+}
+
+int db_get_business_info_with_where(MYSQL* mysql, const char* where, pquery_business_info query_info)
+{
+  if(!mysql || !where){
+    printf("Invalid parameters.\n");
+    return -1;
+  }
+
+  char * prepStmt = "select * from business_msg %s;";
+  char queryStmt[2048] = {0};
+  int ret = 0;
+
+  sprintf(queryStmt, prepStmt, where);
+	printf("sql: [%s]\n", queryStmt);
 
   ret = db_do_query_2(mysql, queryStmt, callback_get_business_info, query_info);
 
@@ -380,6 +437,30 @@ int db_get_trace_info(MYSQL* mysql, pquery_trace_info query_info)
   int   ret = 0;
 
   sprintf(queryStmt, prepStmt, "trace_info");
+	printf("sql: [%s]\n", queryStmt);
+
+  ret = db_do_query_2(mysql, queryStmt, callback_get_trace_info, query_info);
+
+  if(ret > 0){
+    return 0;
+  }
+
+  return -1;
+}
+
+int db_get_trace_info_with_where(MYSQL* mysql, const char* where, pquery_trace_info query_info)
+{
+  if(!mysql || !where){
+    printf("Invalid parameters.\n");
+    return -1;
+  }
+
+  char* prepStmt = "select * from trace_info %s;";
+  char  queryStmt[2048] = {0};
+  int   ret = 0;
+
+  sprintf(queryStmt, prepStmt, where);
+	printf("sql: [%s]\n", queryStmt);
 
   ret = db_do_query_2(mysql, queryStmt, callback_get_trace_info, query_info);
 
@@ -393,7 +474,7 @@ int db_get_trace_info(MYSQL* mysql, pquery_trace_info query_info)
 /* add table interfaces */
 int db_add_trace_info(MYSQL *mysql, ptrace_info traceinfo)
 {
-	char* prepStmt = "insert into %s values('%s','%s');";
+	char* prepStmt = "insert into %s values('%s','%s','%s');";
 	char*	queryStmt = (char*)malloc(2048);
 	int		ret = 0;
 
@@ -404,7 +485,7 @@ int db_add_trace_info(MYSQL *mysql, ptrace_info traceinfo)
 		return -1;
 	}
 
-	sprintf(queryStmt, prepStmt, "trace_info", traceinfo->incallid, traceinfo->outcallid);
+	sprintf(queryStmt, prepStmt, "trace_info", traceinfo->sign_no, traceinfo->incallid, traceinfo->outcallid);
 	ret = db_do_query_2(mysql, queryStmt, NULL, NULL);
 
 	if(queryStmt){
@@ -438,3 +519,25 @@ int db_delete_trace_info(MYSQL* mysql, ptrace_info traceinfo)
 	}
   return -1;
 }
+
+int db_update_trace_info_with_where(MYSQL* mysql, const char* setstr, const char* where)
+{
+	if(!mysql || !setstr || !where){
+		printf("Invalid parameters.\n");
+		return -1;
+	}
+
+	char* prepStmt = "UPDATE trace_info SET %s WHERE %s;";
+	char	queryStmt[2048] = {0};
+	int		ret = 0;
+
+	sprintf(queryStmt, prepStmt, setstr, where);
+	ret = db_do_query_2(mysql, queryStmt, NULL, NULL);
+
+	if(ret > 0){
+		return 0;
+	}
+
+	return -1;
+}
+

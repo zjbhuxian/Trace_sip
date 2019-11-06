@@ -4,9 +4,8 @@ typedef struct {
 	const char *host;
 	const char *username;
 	const char *password;
-	int  port;
+	unsigned int  port;
 	const char *dbname;
-	const char *table;	
 }Dbconfig, *PDbconfig;
 
 typedef struct {
@@ -16,6 +15,9 @@ typedef struct {
 }Fileconfig, *PFileconfig;
 
 typedef struct {
+	const char* host;
+	unsigned int port;
+	const char* channel;
 }Redisconfig, *PRedisconfig;
 
 typedef struct {

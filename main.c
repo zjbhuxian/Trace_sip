@@ -40,7 +40,7 @@ int main(int argc, char **argv)
   output_dest = tc.output_dest;
   printf("output_dest = %d\n", output_dest);
 
-  //print_traceconfig(&tc);
+  print_traceconfig(&tc);
   // get logger filename
   len = strlen(tc.fileconfig.dir) + strlen(tc.fileconfig.basename) + strlen(tc.fileconfig.suffix);
   logfile = (char*)malloc(len + 1);

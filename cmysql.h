@@ -39,6 +39,8 @@ typedef struct business_msg{
   int   trace_flag;
 }business_info, *pbusiness_info;
 
+int init_business_info(pbusiness_info pbi);
+
 typedef struct query_business_info{
   int num_columns;
   int num_rows;
@@ -49,9 +51,12 @@ typedef struct query_business_info{
 int init_query_business_info(pquery_business_info pqbi);
 
 typedef struct trace_table{
+	char	sign_no[LENG_50];
   char  incallid[LENG_256];
   char  outcallid[LENG_256];
 }trace_info, *ptrace_info;
+
+int init_trace_info(ptrace_info pti);
 
 typedef struct query_trace_info{
   int num_columns;
@@ -84,7 +89,9 @@ int db_do_query_2(MYSQL* mysql, const char* query, callback cb, void* result);
 
 /* select interfaces */
 int db_get_business_info(MYSQL* mysql, pquery_business_info query_info);
+int db_get_business_info_with_where(MYSQL* mysql, const char* where, pquery_business_info query_info);
 int db_get_trace_info(MYSQL* mysql, pquery_trace_info query_info);
+int db_get_trace_info_with_where(MYSQL* mysql, const char* where, pquery_trace_info query_info);
 
 /* add table interfaces */
 int db_add_trace_info(MYSQL* mysql, ptrace_info traceinfo);
@@ -93,6 +100,6 @@ int db_add_trace_info(MYSQL* mysql, ptrace_info traceinfo);
 int db_delete_trace_info(MYSQL* mysql, ptrace_info traceinfo);
 
 /* update table interfaces */
-//int db_update_trace_info(ptrace_info traceinfo);
+int db_update_trace_info_with_where(MYSQL* mysql, const char* setstr, const char* where);
 
 #endif

@@ -32,7 +32,6 @@ void init_dbconfig(PDbconfig pdbc)
 	pdbc->password = NULL;
 	pdbc->port = 0;
 	pdbc->dbname = NULL;
-	pdbc->table = NULL;
 }
 
 void free_dbconfig(PDbconfig pdbc)
@@ -43,7 +42,6 @@ void free_dbconfig(PDbconfig pdbc)
 	release_pointer((void**)(&(pdbc->username)));
 	release_pointer((void**)(&(pdbc->password)));
 	release_pointer((void**)(&(pdbc->dbname)));
-	release_pointer((void**)(&(pdbc->table)));
 }
 
 void print_dbconfig(PDbconfig pdbc)
@@ -55,7 +53,6 @@ void print_dbconfig(PDbconfig pdbc)
   printf("password:%s\n", pdbc->password);
   printf("port:%d\n", pdbc->port);
   printf("dbname:%s\n", pdbc->dbname);
-  printf("table:%s\n", pdbc->table);
 }
 
 void init_fileconfig(PFileconfig pfc)
@@ -96,12 +93,17 @@ void init_redisconfig(PRedisconfig prc)
 	}
 
 	/* Do something */
+	prc->host = NULL;
+	prc->channel = NULL;
+	return;
 }
 
 void free_redisconfig(PRedisconfig prc)
 {
-  if(prc){
-  }
+  if(!prc)return;
+
+	release_pointer((void**)(&(prc->host)));
+	release_pointer((void**)(&(prc->channel)));
 }
 
 void print_redisconfig(PRedisconfig prc)
@@ -153,17 +155,21 @@ static int handler(void* user, const char* section, const char* name, const char
   }else if(MATCH("mysql", "password")){
     ptc->dbconfig.password = strdup(value);
   }else if(MATCH("mysql", "port")){
-    ptc->dbconfig.port = atoi(value);
+    ptc->dbconfig.port = strtoul(value, NULL, 10);
   }else if(MATCH("mysql", "dbname")){
     ptc->dbconfig.dbname = strdup(value);
-  }else if(MATCH("mysql", "table")){
-    ptc->dbconfig.table = strdup(value);
   }else if(MATCH("file", "dir")){
     ptc->fileconfig.dir = strdup(value);
   }else if(MATCH("file", "suffix")){
     ptc->fileconfig.suffix = strdup(value);
   }else if(MATCH("file", "basename")){
     ptc->fileconfig.basename = strdup(value);
+	}else if(MATCH("redis", "host")){
+    ptc->redisconfig.host = strdup(value);
+	}else if(MATCH("redis", "port")){
+    ptc->redisconfig.port= strtoul(value, NULL, 10);
+	}else if(MATCH("redis", "channel")){
+    ptc->redisconfig.channel= strdup(value);
   }else{
     return 0; /* unknown section/name, error */
   }
