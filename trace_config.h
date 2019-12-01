@@ -6,6 +6,7 @@ typedef struct {
 	const char *password;
 	unsigned int  port;
 	const char *dbname;
+	//const char *table;	
 }Dbconfig, *PDbconfig;
 
 typedef struct {
@@ -22,14 +23,14 @@ typedef struct {
 
 typedef struct {
 	int		output_dest;	// indicating destination
-	Dbconfig	dbconfig;	
+	//Dbconfig	dbconfig;	
 	Fileconfig	fileconfig;	
 	Redisconfig	redisconfig;
 }Traceconfig, *PTraceconfig;
 
-void init_dbconfig(PDbconfig pdbc);
-void free_dbconfig(PDbconfig pdbc);
-void print_dbconfig(PDbconfig pdbc);
+//void init_dbconfig(PDbconfig pdbc);
+//void free_dbconfig(PDbconfig pdbc);
+//void print_dbconfig(PDbconfig pdbc);
 
 void init_fileconfig(PFileconfig pfc);
 void free_fileconfig(PFileconfig pfc);

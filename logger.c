@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
+#include "../../sr_module.h"
 
 #include "logger.h"
 
@@ -168,7 +169,7 @@ void init_logger(void)
 	log_set_udata(&rwlock);
 	log_set_lock(my_rwlock);
 	//log_set_fp()
-	log_set_level(LOG_TRACE);
+	log_set_level(_LOG_TRACE);
 	log_set_quiet(1);
 }
 
@@ -179,4 +180,20 @@ void destroy_logger(void)
 		fclose(L.fp);
 		L.fp = NULL;
 	}
+}
+
+void ct_write_to_file(const char* filename, const char* msg)
+{
+	if(!filename || !msg)return;
+	LM_DBG("filename, msg = [%s][%s]\n", filename, msg);
+
+	FILE* fp = fopen(filename, "a+");
+	if(!fp){
+		LM_ERR("Failed to open file [%s]\n", filename);
+		return;
+	}
+	init_logger();
+	log_set_fp(fp);
+	log_info(msg);	
+	destroy_logger();
 }
